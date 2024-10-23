@@ -13,10 +13,10 @@ class WMain(QMainWindow):
         # Centrar la ventana
         self.center()
 
-        # Layout principal con dos asides (izquierda y derecha) y el contenido central
+        # Layout principal con un aside izquierdo y el contenido central
         main_layout = QHBoxLayout()
 
-        # Crear aside izquierdo con botones
+        # Crear aside izquierdo con la página de concentración y el botón de ajustes
         self.left_sidebar = self.create_left_sidebar()
         main_layout.addWidget(self.left_sidebar)
 
@@ -30,9 +30,8 @@ class WMain(QMainWindow):
         self.central_widget.setStyleSheet("background-color: white;")  # Fondo blanco puro
         main_layout.addWidget(self.central_widget)
 
-        # Crear aside derecho con la página de concentración
-        self.right_sidebar = self.create_right_sidebar()
-        main_layout.addWidget(self.right_sidebar)
+        # Inicialmente, el aside derecho no se mostrará
+        self.right_sidebar = None
 
         # Contenedor principal
         container = QWidget()
@@ -58,8 +57,28 @@ class WMain(QMainWindow):
         monk_mode_label.setWordWrap(True)
         sidebar_layout.addWidget(monk_mode_label)
 
+        # Página de concentración
+        self.page_concentration = PConcentration(self)
+        sidebar_layout.addWidget(self.page_concentration)
+
         # Espaciador
         sidebar_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+
+        # Botón de ajustes
+        settings_button = WgButton("Ajustes")
+        settings_button.clicked.connect(self.toggle_right_sidebar)  # Conectar al método que alterna el aside derecho
+        sidebar_layout.addWidget(settings_button)
+
+        left_sidebar.setLayout(sidebar_layout)
+        left_sidebar.setMinimumWidth(100)
+        left_sidebar.setMaximumWidth(200)
+        left_sidebar.setStyleSheet("background-color: #FAF3E0;")  # Color hueso
+
+        return left_sidebar
+
+    def create_right_sidebar(self):
+        right_sidebar = QWidget()
+        sidebar_layout = QVBoxLayout()
 
         # Botón "Bloquear"
         block_button = WgButton("Bloquear")
@@ -76,27 +95,24 @@ class WMain(QMainWindow):
         toggle_theme_button.clicked.connect(self.toggle_theme)
         sidebar_layout.addWidget(toggle_theme_button)
 
-        left_sidebar.setLayout(sidebar_layout)
-        left_sidebar.setMinimumWidth(100)
-        left_sidebar.setMaximumWidth(200)
-        left_sidebar.setStyleSheet("background-color: #FAF3E0;")  # Color hueso
-
-        return left_sidebar
-
-    def create_right_sidebar(self):
-        right_sidebar = QWidget()
-        sidebar_layout = QVBoxLayout()
-
-        # Página de concentración
-        self.page_concentration = PConcentration(self)
-        sidebar_layout.addWidget(self.page_concentration)
-
         right_sidebar.setLayout(sidebar_layout)
         right_sidebar.setMinimumWidth(100)
         right_sidebar.setMaximumWidth(200)
         right_sidebar.setStyleSheet("background-color: #FAF3E0;")  # Color hueso
 
         return right_sidebar
+
+    def toggle_right_sidebar(self):
+        # Alternar la visibilidad del aside derecho
+        if self.right_sidebar:
+            # Si el aside ya existe, lo removemos
+            self.centralWidget().layout().removeWidget(self.right_sidebar)
+            self.right_sidebar.deleteLater()
+            self.right_sidebar = None
+        else:
+            # Si no existe, lo creamos y lo añadimos
+            self.right_sidebar = self.create_right_sidebar()
+            self.centralWidget().layout().addWidget(self.right_sidebar)
 
     def toggle_theme(self):
         # Implementar la lógica para alternar entre el modo oscuro y claro

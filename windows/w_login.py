@@ -1,4 +1,3 @@
-import cv2
 import json
 import os
 from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QApplication
@@ -88,7 +87,7 @@ class WLogin(QMainWindow):
         return widget
 
     def load_user(self):
-        path = 'database/userData.json'  # Actualizar la ruta del archivo
+        path = 'data/user.json'  # Actualizar la ruta del archivo
         if os.path.exists(path):
             try:
                 with open(path, 'r') as file:
@@ -98,56 +97,12 @@ class WLogin(QMainWindow):
         return None
 
     def save_user(self, username, password):
-        # Verificar y crear el directorio de fotos si no existe
-        photos_dir = 'database/photos/'
-        if not os.path.exists(photos_dir):
-            os.makedirs(photos_dir)
-
-        # Tomar la foto y guardarla
-        photo_path = os.path.join(photos_dir, f"{username}.jpg")
-        self.take_photo(photo_path)
-
-        user_data = {"name": username, "password": password, "photo": photo_path}  # Guardar la ruta de la foto
+        user_data = {"name": username, "password": password}  # Asegúrate de usar el campo 'name'
         try:
-            with open('database/userData.json', 'w') as file:  # Actualizar la ruta del archivo
+            with open('data/user.json', 'w') as file:  # Actualizar la ruta del archivo
                 json.dump(user_data, file, indent=4)
         except Exception as e:
             print(f"Error al guardar el archivo: {e}")
-
-    def take_photo(self, photo_path):
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            print("Error: No se puede acceder a la cámara.")
-            return
-
-        ret, frame = cap.read()
-        if ret:
-            cv2.imwrite(photo_path, frame)
-            print(f"Foto guardada en {photo_path}")
-        else:
-            print("Error al capturar la imagen.")
-        cap.release()
-
-    def compare_photos(self, img1_path, img2_path):
-        img1 = cv2.imread(img1_path)
-        img2 = cv2.imread(img2_path)
-
-        if img1 is None:
-            print(f"No se pudo cargar la imagen {img1_path}")
-            return False
-
-        if img2 is None:
-            print(f"No se pudo cargar la imagen {img2_path}")
-            return False
-
-        img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-        img2_gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-
-        # Comparar las imágenes (puedes ajustar el método)
-        diff = cv2.absdiff(img1_gray, img2_gray)
-        if cv2.countNonZero(diff) < 1000:  # Ajusta el umbral según sea necesario
-            return True
-        return False
 
     def center_window(self):
         screen = QApplication.primaryScreen().availableGeometry()
@@ -157,17 +112,12 @@ class WLogin(QMainWindow):
 
     def on_login(self):
         if self.user_data:
-            registered_photo_path = self.user_data['photo']
-            current_photo_path = 'current_photo.jpg'  # Foto tomada en el momento del login
-
-            self.take_photo(current_photo_path)
-
-            if self.compare_photos(current_photo_path, registered_photo_path):
+            try:
                 self.main_window = WMain()  # Inicializar la ventana principal
                 self.main_window.show()
                 self.close()  # Cerrar la ventana de inicio de sesión
-            else:
-                print("Las fotos no coinciden. Intenta de nuevo.")
+            except Exception as e:
+                print(f"Error al iniciar la ventana principal: {e}")
         else:
             print("No hay usuario registrado.")
 
@@ -177,8 +127,18 @@ class WLogin(QMainWindow):
         if username and password:
             self.save_user(username, password)
             print("¡Cuenta creada exitosamente!")
-            self.user_data = self.load_user()  # Cargar los datos actualizados
-            self.right_column.itemAt(0).widget().deleteLater()  # Limpiar la interfaz anterior
-            self.right_column.addWidget(self.create_login_interface())
+            
+            # Recargar los datos del usuario desde el archivo
+            self.user_data = self.load_user()
+            
+            # Verifica que los datos se carguen correctamente
+            if self.user_data:
+                # Elimina la interfaz de registro y muestra la de inicio de sesión
+                self.right_column.itemAt(0).widget().deleteLater()  # Limpiar la interfaz anterior
+                self.right_column.addWidget(self.create_login_interface())
+            else:
+                print("Error: No se pudieron cargar los datos del usuario después de registrarse.")
         else:
             print("Por favor, completa todos los campos.")
+
+
