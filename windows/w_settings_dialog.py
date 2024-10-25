@@ -5,6 +5,7 @@ from widgets.wg_button import WgButton  # Usar el botón personalizado
 from pages.p_block import PBlock
 from pages.p_activities import PActivities
 import json
+import os
 
 class WSettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -91,17 +92,26 @@ class WSettingsDialog(QDialog):
 
     def save_settings(self):
         """Función para guardar los ajustes en un archivo JSON"""
-        # Obtener los datos desde las páginas de ajustes
-        settings_data = {
-            "block": self.block_page.get_data(),
-            "activities": self.activities_page.get_data()
-        }
-
-        # Guardar en data/user.json
         try:
+            # Cargar los datos existentes
+            existing_data = {}
+            if os.path.exists("data/user.json"):
+                with open("data/user.json", "r") as file:
+                    existing_data = json.load(file)
+
+            # Crear un nuevo diccionario con los ajustes
+            settings_data = {
+                "name": existing_data.get("name", ""),  # Conservar el nombre si existe
+                "password": existing_data.get("password", ""),  # Conservar la contraseña si existe
+                "block": self.block_page.get_data(),
+                "activities": self.activities_page.get_data()
+            }
+
             with open("data/user.json", "w") as file:
                 json.dump(settings_data, file, indent=4)
+
             print("Ajustes guardados correctamente.")
             self.close()  # Cierra el settings dialog
         except Exception as e:
             print(f"Error guardando los ajustes: {e}")
+

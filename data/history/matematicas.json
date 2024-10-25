@@ -1,0 +1,26 @@
+{
+  "2024-10-25": {
+    "duration": 60,
+    "emotions": {
+      "happy": 80,
+      "neutral": 70,
+      "stressed": 90
+    }
+  },
+  "2024-10-26": {
+    "duration": 45,
+    "emotions": {
+      "happy": 75,
+      "neutral": 60,
+      "stressed": 50
+    }
+  },
+  "2024-10-27": {
+    "duration": 90,
+    "emotions": {
+      "happy": 85,
+      "neutral": 65,
+      "stressed": 30
+    }
+  }
+}

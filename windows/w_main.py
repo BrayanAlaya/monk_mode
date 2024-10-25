@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect
+from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect, QScrollArea
 from PyQt6.QtCore import Qt
-from pages.p_statistics import PStatistics
+from PyQt6.QtGui import QColor
+from pages.p_dashboard import PDashboard
 from pages.p_concentration import PConcentration
 from widgets.wg_button import WgButton
 from windows.w_settings_dialog import WSettingsDialog
@@ -21,11 +22,16 @@ class WMain(QMainWindow):
         self.left_sidebar = self.create_left_sidebar()
         main_layout.addWidget(self.left_sidebar)
 
+        # Crear un área de desplazamiento para la página de estadísticas
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+
         # Crear el widget central que mostrará las estadísticas
         self.central_widget = QStackedWidget()
-        self.page_statistics = PStatistics(self)
-        self.central_widget.addWidget(self.page_statistics)
-        self.central_widget.setCurrentWidget(self.page_statistics)
+        self.page_statistics = PDashboard(self)
+        scroll_area.setWidget(self.page_statistics)  # Añadir el dashboard al scroll
+        self.central_widget.addWidget(scroll_area)
+        self.central_widget.setCurrentWidget(scroll_area)
 
         # Aplicar estilo en blanco y negro
         self.central_widget.setStyleSheet("background-color: white; color: black;")
@@ -36,6 +42,12 @@ class WMain(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+        # Crear la capa de fondo (overlay) para oscurecer cuando se abren los ajustes
+        self.overlay = QWidget(self)
+        self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 128);")  # Semitransparente
+        self.overlay.setGeometry(self.rect())
+        self.overlay.setVisible(False)  # Ocultar por defecto
 
     def center(self):
         screen_geometry = self.screen().geometry()
@@ -68,21 +80,19 @@ class WMain(QMainWindow):
         sidebar_layout.addWidget(settings_button)
 
         left_sidebar.setLayout(sidebar_layout)
-        left_sidebar.setMinimumWidth(100)
-        left_sidebar.setMaximumWidth(200)
+        left_sidebar.setMinimumWidth(200)
+        left_sidebar.setMaximumWidth(300)
         left_sidebar.setStyleSheet("background-color: white;")
 
         return left_sidebar
 
     def show_settings_dialog(self):
+        # Mostrar la capa oscura
+        self.overlay.setVisible(True)
+        
         dialog = WSettingsDialog(self)
+        
+        # Ocultar la capa oscura cuando el diálogo se cierra
+        dialog.finished.connect(lambda: self.overlay.setVisible(False))
+        
         dialog.exec()
-    def apply_background_overlay(main_window, enabled=True):
-        if enabled:
-            # Crear un efecto de opacidad para oscurecer el fondo
-            opacity_effect = QGraphicsOpacityEffect()
-            opacity_effect.setOpacity(0.5)  # Ajusta la opacidad al 50%
-            main_window.setGraphicsEffect(opacity_effect)
-        else:
-            # Elimina el efecto
-            main_window.setGraphicsEffect(None)
