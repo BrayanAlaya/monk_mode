@@ -1,4 +1,13 @@
 {
     "block": [],
-    "activities": []
+    "activities": [
+        {
+            "id": "3abf0746-68b8-49c5-a699-6806e8b7ee32",
+            "name": "Matematicas"
+        },
+        {
+            "id": "003e6a23-5446-426a-b320-344250998c04",
+            "name": "Lenguaje"
+        }
+    ]
 }
