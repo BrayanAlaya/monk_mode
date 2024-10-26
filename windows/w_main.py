@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect, QScrollArea
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect, QScrollArea, QPushButton
+from PyQt6.QtCore import Qt,QSize
+from PyQt6.QtGui import QIcon, QPixmap
 from pages.p_dashboard import PDashboard
 from pages.p_concentration import PConcentration
-from widgets.wg_button import WgButton
 from windows.w_settings_dialog import WSettingsDialog
 
 class WMain(QMainWindow):
@@ -74,13 +73,29 @@ class WMain(QMainWindow):
         # Espaciador
         sidebar_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-        # Botón de ajustes (verde de WgButton)
-        settings_button = WgButton("Ajustes")
+        # Crear un layout para el botón de ajustes y alinearlo a la derecha
+        settings_layout = QHBoxLayout()
+        settings_button = QPushButton()  # Usaremos un QPushButton para el SVG
+        settings_icon = QIcon("assets/settings.svg")  # Ruta al archivo SVG
+        settings_button.setIcon(settings_icon)
+        settings_button.setIconSize(QSize(32, 32))  # Ajusta el tamaño del ícono
+
+        # Cambia el estilo para asegurarte de que sea interactivo
+        settings_button.setStyleSheet("background-color: transparent; border: none; cursor: pointer;")  # Sin fondo ni borde y cursor
+
+        # Configura la acción del botón
         settings_button.clicked.connect(self.show_settings_dialog)
-        sidebar_layout.addWidget(settings_button)
+
+        # Agregar el botón de ajustes al layout y agregar espaciador para alineación
+        settings_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        settings_layout.addWidget(settings_button)
+
+
+        # Agregar el layout de ajustes al layout principal
+        sidebar_layout.addLayout(settings_layout)
 
         left_sidebar.setLayout(sidebar_layout)
-        left_sidebar.setMinimumWidth(200)
+        left_sidebar.setMinimumWidth(300)
         left_sidebar.setMaximumWidth(300)
         left_sidebar.setStyleSheet("background-color: white;")
 
@@ -89,10 +104,10 @@ class WMain(QMainWindow):
     def show_settings_dialog(self):
         # Mostrar la capa oscura
         self.overlay.setVisible(True)
-        
+
         dialog = WSettingsDialog(self)
-        
+
         # Ocultar la capa oscura cuando el diálogo se cierra
         dialog.finished.connect(lambda: self.overlay.setVisible(False))
-        
+
         dialog.exec()

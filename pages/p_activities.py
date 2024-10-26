@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel, QListWidget, QLineEdit
 from widgets.wg_button import WgButton
 from utils.json_manager import load_json, update_json_section
 import json
+import os
+import unidecode  # Para normalizar el nombre de la actividad
 
 class PActivities(QFrame):
     def __init__(self, parent=None):
@@ -30,42 +32,53 @@ class PActivities(QFrame):
         self.setLayout(layout)
         self.load_activities_from_json()  # Cargar actividades desde JSON al inicializar
 
+    def normalize_activity_name(self, activity_name):
+        """Normaliza el nombre de la actividad para el uso en archivos."""
+        return unidecode.unidecode(activity_name).lower()
+
     def add_activity(self):
-        """Agrega una nueva actividad a la lista."""
-        activity_name = self.activity_input.text()  # Usar activity_input en lugar de new_activity_input
+        """Agrega una nueva actividad a la lista y crea el archivo JSON correspondiente."""
+        activity_name = self.activity_input.text().strip()
         if activity_name:
-            self.activities_list.addItem(activity_name)  # Agregar actividad a la lista
-            self.activity_input.clear()  # Limpiar el campo de entrada
-            self.save_activities_to_json()  # Guardar cambios en el JSON cada vez que agregues
+            self.activities_list.addItem(activity_name)
+            self.activity_input.clear()
+            self.save_activities_to_json()
+            # Crear archivo JSON en data/history si no existe
+            normalized_name = self.normalize_activity_name(activity_name)
+            file_path = f"data/history/{normalized_name}.json"
+            if not os.path.exists(file_path):
+                with open(file_path, 'w') as file:
+                    json.dump({"duration": 0, "sessions": []}, file, indent=4)  # Plantilla básica
 
     def delete_activity(self):
-        """Elimina la actividad seleccionada."""
-        selected_item = self.activities_list.currentItem()  # Obtener el elemento seleccionado
+        """Elimina la actividad seleccionada y borra el archivo JSON correspondiente."""
+        selected_item = self.activities_list.currentItem()
         if selected_item:
-            self.activities_list.takeItem(self.activities_list.row(selected_item))  # Eliminar el elemento de la lista
-            self.save_activities_to_json()  # Guardar cambios en el JSON cada vez que elimines
+            activity_name = selected_item.text()
+            normalized_name = self.normalize_activity_name(activity_name)
+            file_path = f"data/history/{normalized_name}.json"
+            # Eliminar el archivo JSON si existe
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            # Eliminar de la lista y actualizar JSON
+            self.activities_list.takeItem(self.activities_list.row(selected_item))
+            self.save_activities_to_json()
 
     def save_activities_to_json(self):
         """Guarda las actividades actuales en un archivo JSON sin sobrescribir los otros datos."""
-        # Cargar datos existentes
         data = load_json('data/user.json')
-        
         # Obtener actividades actuales
         activities = [self.activities_list.item(i).text() for i in range(self.activities_list.count())]
-        
         # Actualizar la sección 'activities'
         data['activities'] = activities
-        
         # Guardar en JSON
         with open('data/user.json', 'w') as file:
             json.dump(data, file, indent=4)
-
 
     def load_activities_from_json(self):
         """Carga actividades desde el archivo JSON."""
         data = load_json('data/user.json')
         activities = data.get("activities", [])
-
         # Asegúrate de que activities es una lista antes de procesar
         if isinstance(activities, list):
             for activity in activities:

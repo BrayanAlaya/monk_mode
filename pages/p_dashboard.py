@@ -20,15 +20,10 @@ class PDashboard(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)  # Quitar márgenes
         layout.setSpacing(10)  # Reducir el espacio entre elementos
 
-        # Título de la página
-        label = QLabel("Página de Estadísticas")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(label)
-
         # Área de desplazamiento para los gráficos
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("QScrollArea { background-color: #f5f5f5; }")  # Fondo ligero
+        self.scroll_area.setStyleSheet("QScrollArea { background-color: rgba(245, 245, 245, 0.9); }")  # Fondo más opaco
         layout.addWidget(self.scroll_area)
 
         # Widget contenedor para gráficos
@@ -54,7 +49,7 @@ class PDashboard(QWidget):
             # Crear y renderizar el ChartRenderer para cada actividad
             renderer = ChartRenderer(activity)  # Utiliza el nombre de la actividad
             renderer.setMinimumHeight(300)  # Altura mínima para gráficos más grandes
-            renderer.setStyleSheet("background-color: white;")  # Fondo blanco para los gráficos
+            renderer.setStyleSheet("background-color: rgba(255, 255, 255, 0.9);")  # Fondo blanco más opaco para los gráficos
             self.content_layout.addWidget(renderer)
 
             # Renderizar los datos del gráfico
