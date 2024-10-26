@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect, QScrollArea, QPushButton
-from PyQt6.QtCore import Qt,QSize
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QSizePolicy, QSpacerItem, QScrollArea, QPushButton
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon
 from pages.p_dashboard import PDashboard
 from pages.p_concentration import PConcentration
 from windows.w_settings_dialog import WSettingsDialog
@@ -13,6 +13,9 @@ class WMain(QMainWindow):
 
         # Centrar la ventana
         self.center()
+
+        # Establecer el modo claro
+        self.set_light_mode()
 
         # Layout principal con un aside izquierdo y el contenido central
         main_layout = QHBoxLayout()
@@ -32,9 +35,6 @@ class WMain(QMainWindow):
         self.central_widget.addWidget(scroll_area)
         self.central_widget.setCurrentWidget(scroll_area)
 
-        # Aplicar estilo en blanco y negro
-        self.central_widget.setStyleSheet("background-color: white; color: black;")
-
         main_layout.addWidget(self.central_widget)
 
         # Contenedor principal
@@ -47,6 +47,10 @@ class WMain(QMainWindow):
         self.overlay.setStyleSheet("background-color: rgba(0, 0, 0, 128);")  # Semitransparente
         self.overlay.setGeometry(self.rect())
         self.overlay.setVisible(False)  # Ocultar por defecto
+
+    def set_light_mode(self):
+        """Establece el esquema de colores del modo claro."""
+        self.setStyleSheet("background-color: white; color: black;")
 
     def center(self):
         screen_geometry = self.screen().geometry()
@@ -63,7 +67,6 @@ class WMain(QMainWindow):
         monk_mode_label = QLabel("Monk\nMode")
         monk_mode_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         monk_mode_label.setStyleSheet("font-size: 48px; font-weight: bold; color: black;")
-        monk_mode_label.setWordWrap(True)
         sidebar_layout.addWidget(monk_mode_label)
         sidebar_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
@@ -92,7 +95,6 @@ class WMain(QMainWindow):
         settings_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
         settings_layout.addWidget(settings_button)
 
-
         # Agregar el layout de ajustes al layout principal
         sidebar_layout.addLayout(settings_layout)
 
@@ -113,6 +115,7 @@ class WMain(QMainWindow):
         dialog.finished.connect(lambda: self.overlay.setVisible(False))
 
         dialog.exec()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         # Ajusta el overlay al tamaño de la ventana principal

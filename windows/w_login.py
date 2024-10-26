@@ -1,7 +1,7 @@
 import json
 import os
 from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QApplication
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPalette, QColor
 from PyQt6.QtCore import Qt
 from widgets.wg_button import WgButton
 from windows.w_main import WMain  # Importar MainWindow
@@ -12,6 +12,9 @@ class WLogin(QMainWindow):
         self.setWindowTitle("Login")
         self.setFixedSize(600, 400)
         self.center_window()
+
+        # Establecer el modo claro
+        self.set_light_mode()
 
         # Crear layout principal
         main_layout = QHBoxLayout()
@@ -43,6 +46,13 @@ class WLogin(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+    def set_light_mode(self):
+        """Establece el esquema de colores del modo claro."""
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(255, 255, 255))  # Color de fondo blanco
+        palette.setColor(QPalette.ColorRole.WindowText, QColor(0, 0, 0))  # Color de texto negro
+        self.setPalette(palette)
 
     def create_login_interface(self):
         # Mensaje de bienvenida
