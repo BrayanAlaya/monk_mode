@@ -9,7 +9,7 @@ class WMain(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Main")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1000, 700)
 
         # Centrar la ventana
         self.center()
@@ -65,6 +65,7 @@ class WMain(QMainWindow):
         monk_mode_label.setStyleSheet("font-size: 48px; font-weight: bold; color: black;")
         monk_mode_label.setWordWrap(True)
         sidebar_layout.addWidget(monk_mode_label)
+        sidebar_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         # Página de concentración
         self.page_concentration = PConcentration(self)
@@ -79,6 +80,7 @@ class WMain(QMainWindow):
         settings_icon = QIcon("assets/settings.svg")  # Ruta al archivo SVG
         settings_button.setIcon(settings_icon)
         settings_button.setIconSize(QSize(32, 32))  # Ajusta el tamaño del ícono
+        settings_button.setCursor(Qt.CursorShape.PointingHandCursor)  # Establecer el cursor a la mano
 
         # Cambia el estilo para asegurarte de que sea interactivo
         settings_button.setStyleSheet("background-color: transparent; border: none; cursor: pointer;")  # Sin fondo ni borde y cursor
@@ -111,3 +113,7 @@ class WMain(QMainWindow):
         dialog.finished.connect(lambda: self.overlay.setVisible(False))
 
         dialog.exec()
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Ajusta el overlay al tamaño de la ventana principal
+        self.overlay.setGeometry(self.rect())

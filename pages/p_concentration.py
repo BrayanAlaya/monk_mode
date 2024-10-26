@@ -7,16 +7,19 @@ import json
 from datetime import datetime
 from unidecode import unidecode
 import os
+import psutil
 
 class PConcentration(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         layout = QVBoxLayout()
 
+        # Inicializar variables
         self.remaining_seconds = 0  
         self.total_seconds = 0  
         self.start_time = None  
 
+        # Configurar interfaz
         self.progress_circle = WgCircleProgress()
         layout.addWidget(self.progress_circle, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -72,12 +75,14 @@ class PConcentration(QWidget):
             return []
 
     def cancel_activity(self):
-        """Detener el temporizador y registrar los datos hasta el momento."""
+        """Detener el temporizador y desbloquear aplicaciones."""
         if hasattr(self, 'timer_window'):
             elapsed_time = self.total_seconds - self.remaining_seconds
             self.timer_window.timer.stop()
             self.timer_window.close()
             self.finish_activity(elapsed_time)
+
+        self.release_blocking()  # Desbloquear aplicaciones al cancelar
 
         self.progress_circle.set_progress(0)
         self.activity_running = False
@@ -86,6 +91,8 @@ class PConcentration(QWidget):
     def confirm_activity(self):
         if self.activity_running:
             return
+
+        self.enforce_blocking()  # Bloquear aplicaciones al iniciar la actividad
 
         activity_name = unidecode(self.activity_combo.currentText().strip().lower())
         time = self.time_spinner.value()
@@ -113,10 +120,12 @@ class PConcentration(QWidget):
             self.finish_activity(self.total_seconds)
 
     def finish_activity(self, elapsed_time):
-        """Manejar la finalización de la actividad y actualizar el archivo JSON."""
+        """Manejar la finalización de la actividad y desbloquear aplicaciones."""
         self.progress_circle.set_progress(100)
         self.progress_circle.update_timer_label(0)
         self.update_activity_json(elapsed_time)
+
+        self.release_blocking()  # Desbloquear aplicaciones al finalizar la actividad
 
         self.activity_running = False
         self.confirm_button.setEnabled(True)
@@ -157,3 +166,38 @@ class PConcentration(QWidget):
 
         except (FileNotFoundError, json.JSONDecodeError):
             print("Error al actualizar el archivo de actividad.")
+
+    def enforce_blocking(self):
+        """Bloquear aplicaciones al iniciar la actividad."""
+        # Aquí puedes definir la lógica para bloquear aplicaciones según tus necesidades
+        blocked_apps = self.get_blocked_apps()  # Cargar aplicaciones bloqueadas
+        for app in blocked_apps:
+            self.enforce_app_blocking(app)
+
+    def release_blocking(self):
+        """Desbloquear todas las aplicaciones bloqueadas."""
+        blocked_apps = self.get_blocked_apps()  # Cargar aplicaciones bloqueadas
+        for app in blocked_apps:
+            self.release_app_blocking(app)
+
+    def get_blocked_apps(self):
+        """Obtener la lista de aplicaciones bloqueadas desde JSON."""
+        try:
+            with open('data/user.json', 'r') as file:
+                user_data = json.load(file)
+                return user_data.get("block", [])
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Error al cargar las aplicaciones bloqueadas.")
+            return []
+
+    def enforce_app_blocking(self, app_name):
+        """Bloquear un proceso de aplicación."""
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] == app_name:
+                proc.suspend()
+
+    def release_app_blocking(self, app_name):
+        """Desbloquear un proceso de aplicación."""
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] == app_name:
+                proc.resume()

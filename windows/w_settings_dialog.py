@@ -25,11 +25,11 @@ class WSettingsDialog(QDialog):
 
         # Oscurecer la ventana principal
         self.overlay = QWidget(parent)
-        self.overlay.setGeometry(parent.rect())
         self.overlay.setStyleSheet("""
             background-color: rgba(0, 0, 0, 100);  # Oscurecer con transparencia
         """)
         self.overlay.show()
+        self.update_overlay_geometry()
 
         # Layout principal para el modal
         layout = QHBoxLayout()
@@ -51,6 +51,20 @@ class WSettingsDialog(QDialog):
         self.settings_pages.addWidget(self.activities_page)
 
         self.setLayout(layout)
+
+    def update_overlay_geometry(self):
+        """Actualizar la geometría del overlay para cubrir toda la ventana principal."""
+        self.overlay.setGeometry(self.parent().rect())
+
+    def showEvent(self, event):
+        """Actualizar la geometría del overlay al mostrar el diálogo."""
+        self.update_overlay_geometry()
+        super().showEvent(event)
+
+    def resizeEvent(self, event):
+        """Actualizar la geometría del overlay cuando la ventana principal cambie de tamaño."""
+        self.update_overlay_geometry()
+        super().resizeEvent(event)
 
     def closeEvent(self, event):
         """Sobrescribir el evento de cierre para quitar el overlay"""
@@ -99,11 +113,19 @@ class WSettingsDialog(QDialog):
                 with open("data/user.json", "r") as file:
                     existing_data = json.load(file)
 
+            # Obtener los bloqueos actuales del archivo y los cambios en la lista
+            current_blocked_apps = existing_data.get("block", [])
+            new_blocked_apps = self.block_page.get_data()
+
+            # Mantener la lista original si no hay cambios en el bloqueo
+            if not new_blocked_apps and current_blocked_apps:
+                new_blocked_apps = current_blocked_apps
+
             # Crear un nuevo diccionario con los ajustes
             settings_data = {
                 "name": existing_data.get("name", ""),  # Conservar el nombre si existe
                 "password": existing_data.get("password", ""),  # Conservar la contraseña si existe
-                "block": self.block_page.get_data(),
+                "block": new_blocked_apps,
                 "activities": self.activities_page.get_data()
             }
 
@@ -114,4 +136,3 @@ class WSettingsDialog(QDialog):
             self.close()  # Cierra el settings dialog
         except Exception as e:
             print(f"Error guardando los ajustes: {e}")
-
