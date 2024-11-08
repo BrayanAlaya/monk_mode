@@ -6,7 +6,7 @@ class PBlock(QFrame):
         super().__init__(parent)
 
         layout = QVBoxLayout()
-
+        #asdadadadad
         # Etiqueta para indicar que es la página de "Bloquear"
         label = QLabel("Aplicaciones bloqueadas")
         label.setStyleSheet("font-size: 18px; font-weight: bold;")
